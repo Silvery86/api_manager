@@ -2,13 +2,27 @@
 /*
 Plugin Name: Plugin Manager API
 Description: Create custom API
-Version: 1.3
+Version: 1.5
 Author: Ablue-Dev
 Update URI: https://b-commerce.xyz/api-manager/
 */
 
+if (!defined('ABSPATH')) {
+    exit; // Exit if accessed directly
+}
+require 'plugin-update-checker-5.4/plugin-update-checker.php';
+use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
 
-function get_orders_custom_by_date($data) {
+$myUpdateChecker = PucFactory::buildUpdateChecker(
+    'https://github.com/Silvery86/api_manager',
+    __FILE__,
+    'api_manager'
+);
+
+//Set the branch that contains the stable release.
+$myUpdateChecker->setBranch('stable-version');
+
+function get_orders_custom_by_date_api($data) {
     // Get custom day from GET request
     $custom_day = isset($_GET['custom_day']) ? intval($_GET['custom_day']) : 0;
 
@@ -193,7 +207,7 @@ add_action('rest_api_init', function () {
         'get-orders',
         array(
             'methods' => 'GET',
-            'callback' => 'get_orders_custom_by_date',
+            'callback' => 'get_orders_custom_by_date_api',
             'permission_callback' => function ($request) {
                 return current_user_can('manage_options');
             },
@@ -203,64 +217,44 @@ add_action('rest_api_init', function () {
 
 // API check
 // Hook into WooCommerce REST API request
-add_action('rest_api_init', 'wc_api_logger_hook', 10, 1);
-function wc_api_logger_hook()
+add_action('rest_api_init', 'ab_custom_api_logger_hook', 10, 1);
+function ab_custom_api_logger_hook()
 {
     add_action('rest_pre_dispatch', 'wc_api_logger_log_request', 10, 3);
 }
 
-function wc_api_logger_log_request($result, $server, $request)
-{
-    // Get the current user
-    $current_user = wp_get_current_user();
-    $user         = $current_user->user_login;
-    $domain = get_site_url();
-    $ip = $_SERVER['REMOTE_ADDR'];
+if (!function_exists('wc_api_logger_log_request')) {
+    function wc_api_logger_log_request($result, $server, $request)
+    {
+        // Get the current user
+        $current_user = wp_get_current_user();
+        $user         = $current_user->user_login;
+        $domain       = get_site_url();
+        $ip           = $_SERVER['REMOTE_ADDR'];
+        // Get the request URL
+        $url = $request->get_route();
+        // Get the request method
+        $request_method = $request->get_method();
+        if ($request_method != 'OPTIONS' && $url != '/wc-analytics/reports') {
+            $data = [
+                'domain'         => $domain,
+                'url'            => $url,
+                'user'           => $user,
+                'request_method' => $request_method,
+                'ip'             => $ip
+            ];
+            $api_endpoint
+                  = 'https://blue-dashboard.com/api_logger'; // Replace with your endpoint URL
+            wp_remote_post($api_endpoint, [
+                'method'  => 'POST',
+                'body'    => json_encode($data),
+                'headers' => [
+                    'Content-Type' => 'application/json'
+                ]
+            ]);
+        }
 
-    // Get the request URL
-    $url = $request->get_route();
-    // Get the request method
-    $request_method = $request->get_method();
-    if ($request_method != 'OPTIONS' && $url != '/wc-analytics/reports') {
-        $data = [
-            'domain' => $domain,
-            'url'            => $url,
-            'user'           => $user,
-            'request_method' => $request_method,
-            'ip'             => $ip
-        ];
-        $api_endpoint
-              = 'https://blue-dashboard.com/api_logger'; // Replace with your endpoint URL
-        wp_remote_post($api_endpoint, [
-            'method'  => 'POST',
-            'body'    => json_encode($data),
-            'headers' => [
-                'Content-Type' => 'application/json'
-            ]
-        ]);
+        return $result;
     }
-
-    // Get the request IP
-    // Prepare the data
-
-
-    // Send POST request to the static API endpoint
-
-    return $result;
 }
-
-require 'plugin-update-checker-5.4/plugin-update-checker.php';
-use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
-
-$myUpdateChecker = PucFactory::buildUpdateChecker(
-    'https://github.com/user-name/repo-name/',
-    __FILE__,
-    'unique-plugin-or-theme-slug'
-);
-
-//Set the branch that contains the stable release.
-$myUpdateChecker->setBranch('main');
-
-//Optional: If you're using a private repository, specify the access token like this:
-$myUpdateChecker->setAuthentication('your-token-here');
 

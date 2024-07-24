@@ -1,7 +1,6 @@
 === Plugin Name ===
-Contributors: (this should be a list of wordpress.org userid's)
-Donate link: https://example.com/
-Tags: tag1, tag2
+Contributors: Silvery
+Tags: API
 Requires at least: 4.7
 Tested up to: 5.4
 Stable tag: 4.3
@@ -49,38 +48,10 @@ Answer to foo bar dilemma.
 
 == Changelog ==
 
-= 1.0 =
-* A change since the previous version.
+= 1.5 =
+* Auto update plugin
 * Another change.
 
-= 0.5 =
-* List versions from most recent at top to oldest at bottom.
-
-== Upgrade Notice ==
-
-= 1.0 =
-Upgrade notices describe the reason a user should upgrade.  No more than 300 characters.
-
-= 0.5 =
-This version fixes a security related bug.  Upgrade immediately.
-
-== A brief Markdown Example ==
-
-Markdown is what the parser uses to process much of the readme file.
-
-[markdown syntax]: https://daringfireball.net/projects/markdown/syntax
-
-Ordered list:
-
-1. Some feature
-1. Another feature
-1. Something else about the plugin
-
-Unordered list:
-
-* something
-* something else
-* third thing
 
 Links require brackets and parenthesis:
 
